@@ -1,103 +1,150 @@
-import Image from "next/image";
+// app/page.tsx
+"use client";
+
+import { useState } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import useSWR from "swr";
+import { Music } from "lucide-react";
+import styles from "./page.module.css";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Fetch failed");
+  return data;
+};
+
+const CATEGORIES = [
+  { label: "Top Songs", key: "tracks", header: "Your Top 10 Most-Played Tracks" },
+  { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
+  { label: "Top Genres", key: "genres", header: "Your Top 10 Genres" },
+];
+
+const TIME_RANGES = [
+  { label: "Last 4 Weeks", value: "short_term" },
+  { label: "Last 6 Months", value: "medium_term" },
+  { label: "All Time", value: "long_term" },
+];
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { data: session } = useSession();
+  const [category, setCategory] = useState("tracks");
+  const [timeRange, setTimeRange] = useState("medium_term");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+  const endpoint = session
+    ? `/api/spotify/top-${category}?time_range=${timeRange}`
+    : null;
+
+  const { data, error } = useSWR(endpoint, fetcher);
+
+  if (!session) {
+    return (
+      <main className={styles.container}>
+        <h1 className={styles.header}>☀️ Summer Vibes</h1>
+        <button className={styles.button} onClick={() => signIn("spotify")}>Sign in with Spotify</button>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    );
+  }
+
+  const currentCat = CATEGORIES.find((c) => c.key === category)!;
+  const currentTimeLabel =
+    TIME_RANGES.find((t) => t.value === timeRange)!.label;
+
+  return (
+    <main className={styles.container}>
+      <h1 className={styles.header}>
+        {currentCat.header} ({currentTimeLabel})
+      </h1>
+
+      {/* Main category tabs */}
+      <div className={styles.categoryTabContainer}>
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.key}
+            className={`${styles.categoryTabButton} ${
+              category === c.key ? styles.categoryTabButtonActive : ""
+            }`}
+            onClick={() => {
+              setCategory(c.key);
+              setTimeRange("medium_term");
+            }}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Time-range sub-tabs */}
+      <div className={styles.tabContainer}>
+        {TIME_RANGES.map((t) => (
+          <button
+            key={t.value}
+            className={`${styles.tabButton} ${
+              timeRange === t.value ? styles.tabButtonActive : ""
+            }`}
+            onClick={() => setTimeRange(t.value)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <button className={styles.button} onClick={() => signOut()}>
+        Sign out
+      </button>
+
+      {error && <p className={styles.error}>Error: {error.message}</p>}
+      {!data && !error && <p>Loading…</p>}
+
+      {data && (
+        <ul className={styles.trackList}>
+          {data.map((item: any, i: number) => {
+            if (category === "tracks") {
+              return (
+                <li key={item.id} className={styles.trackItem}>
+                  <img
+                    src={item.album.images[2]?.url}
+                    alt={item.name}
+                    className={styles.trackImage}
+                  />
+                  <div className={styles.trackInfo}>
+                    <strong>{item.name}</strong>
+                    <br />
+                    {item.artists.map((a: any) => a.name).join(", ")}
+                  </div>
+                </li>
+              );
+            } else if (category === "artists") {
+              return (
+                <li key={item.id} className={styles.trackItem}>
+                  <img
+                    src={item.images[2]?.url}
+                    alt={item.name}
+                    className={styles.trackImage}
+                  />
+                  <div className={styles.trackInfo}>
+                    <strong>{item.name}</strong>
+                  </div>
+                </li>
+              );
+            } else {
+              // genres: show icon and no count
+              return (
+                <li key={item.genre} className={styles.trackItem}>
+                  <img
+                    src={item.imageUrl}
+                    alt={item.genre}
+                    className={styles.trackImage}
+                  />
+                  <div className={styles.trackInfo}>
+                    <strong>{item.genre}</strong>
+                  </div>
+                </li>
+              );
+            }
+          })}
+        </ul>
+      )}
+    </main>
   );
 }
