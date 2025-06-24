@@ -1,10 +1,10 @@
-// app/page.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import useSWR from "swr";
-import { Music } from "lucide-react";
 import styles from "./page.module.css";
 
 const fetcher = async (url: string) => {
@@ -41,14 +41,15 @@ export default function Home() {
     return (
       <main className={styles.container}>
         <h1 className={styles.header}>☀️ Summer Vibes</h1>
-        <button className={styles.button} onClick={() => signIn("spotify")}>Sign in with Spotify</button>
+        <button className={styles.button} onClick={() => signIn("spotify")}>
+          Sign in with Spotify
+        </button>
       </main>
     );
   }
 
   const currentCat = CATEGORIES.find((c) => c.key === category)!;
-  const currentTimeLabel =
-    TIME_RANGES.find((t) => t.value === timeRange)!.label;
+  const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
 
   return (
     <main className={styles.container}>
@@ -98,13 +99,15 @@ export default function Home() {
 
       {data && (
         <ul className={styles.trackList}>
-          {data.map((item: any, i: number) => {
+          {data.map((item: any) => {
             if (category === "tracks") {
               return (
                 <li key={item.id} className={styles.trackItem}>
-                  <img
+                  <Image
                     src={item.album.images[2]?.url}
                     alt={item.name}
+                    width={48}
+                    height={48}
                     className={styles.trackImage}
                   />
                   <div className={styles.trackInfo}>
@@ -117,9 +120,11 @@ export default function Home() {
             } else if (category === "artists") {
               return (
                 <li key={item.id} className={styles.trackItem}>
-                  <img
+                  <Image
                     src={item.images[2]?.url}
                     alt={item.name}
+                    width={48}
+                    height={48}
                     className={styles.trackImage}
                   />
                   <div className={styles.trackInfo}>
@@ -128,12 +133,14 @@ export default function Home() {
                 </li>
               );
             } else {
-              // genres: show icon and no count
+              // genres: show the genre’s image from Spotify
               return (
                 <li key={item.genre} className={styles.trackItem}>
-                  <img
+                  <Image
                     src={item.imageUrl}
                     alt={item.genre}
+                    width={48}
+                    height={48}
                     className={styles.trackImage}
                   />
                   <div className={styles.trackInfo}>
