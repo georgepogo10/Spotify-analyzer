@@ -11,10 +11,14 @@
   
   .header {
     text-align: center;
-    font-family: "Brush Script MT", cursive;
+    /* Change from Brush Script to a modern, easy-to-read font stack */
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;       /* make it bold */
     color: #e65100;
     margin-bottom: 1rem;
-    font-size: 2rem;
+    font-size: 2rem;        /* adjust size as needed */
+    line-height: 1.2;       /* improve readability */
   }
   
   .tabContainer {

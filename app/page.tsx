@@ -40,7 +40,7 @@ export default function Home() {
   if (!session) {
     return (
       <main className={styles.container}>
-        <h1 className={styles.header}>☀️ Summer Vibes</h1>
+        <h1 className={styles.header}> Spotify Music Top Lists</h1>
         <button className={styles.button} onClick={() => signIn("spotify")}>
           Sign in with Spotify
         </button>
