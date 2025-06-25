@@ -13,22 +13,23 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const time_range = url.searchParams.get("time_range") ?? "medium_term";
 
-  // fetch top artists (to derive genres)
-  const resp = await fetch(
+  // fetch top artists to derive genres
+  const artistRes = await fetch(
     `https://api.spotify.com/v1/me/top/artists?limit=50&time_range=${time_range}`,
     { headers: { Authorization: `Bearer ${token.accessToken}` } }
   );
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
+  if (!artistRes.ok) {
+    const err = await artistRes.json().catch(() => ({}));
     return NextResponse.json(
       { error: err.error?.message ?? "Spotify fetch failed" },
-      { status: resp.status }
+      { status: artistRes.status }
     );
   }
 
-  const { items: artists } = await resp.json();
+  const { items: artists } = await artistRes.json();
   const counts: Record<string, number> = {};
   const images: Record<string, string> = {};
+
   for (const artist of artists) {
     for (const g of artist.genres) {
       counts[g] = (counts[g] || 0) + 1;
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
   }
 
   const genres = Object.entries(counts)
-    .sort(([,a],[,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 10)
     .map(([genre]) => ({ genre, imageUrl: images[genre]! }));
 
