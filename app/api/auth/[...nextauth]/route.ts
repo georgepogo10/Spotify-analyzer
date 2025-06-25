@@ -2,8 +2,7 @@
 import NextAuth from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
 
-// Local constant only — not exported
-const authOptions = {
+const handler = NextAuth({
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
@@ -24,9 +23,6 @@ const authOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-};
+});
 
-const handler = NextAuth(authOptions);
-
-// **Only** these exports are allowed in a Next.js Route Handler
 export { handler as GET, handler as POST };
