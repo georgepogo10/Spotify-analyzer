@@ -1,8 +1,9 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
 
-const authOptions: NextAuthOptions = {
+// Note: authOptions is a local constant (not exported) so only GET/POST handlers are visible
+const authOptions = {
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
@@ -13,12 +14,12 @@ const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    // TS will infer { token, account } types here
     async jwt({ token, account }) {
-      if (account?.access_token) token.accessToken = account.access_token;
+      if (account?.access_token) {
+        token.accessToken = account.access_token;
+      }
       return token;
     },
-    // TS will infer { session, token } types here
     async session({ session, token }) {
       session.user.accessToken = token.accessToken;
       return session;
@@ -28,4 +29,6 @@ const authOptions: NextAuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
+
+// Only these exports are allowed in a Next.js Route Handler
 export { handler as GET, handler as POST };
