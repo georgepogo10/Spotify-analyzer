@@ -1,10 +1,8 @@
-// next.config.js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  eslint: {
-    // Allow production builds to succeed even with ESLint errors
-    ignoreDuringBuilds: true,
-  },
+// next.config.ts
+import { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // your existing settings...
   experimental: {
     allowedDevOrigins: [
       "http://127.0.0.1:3000",
@@ -13,4 +11,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
