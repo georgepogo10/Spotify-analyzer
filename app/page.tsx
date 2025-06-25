@@ -15,20 +15,20 @@ const fetcher = async (url: string) => {
 };
 
 const CATEGORIES = [
-  { label: "Top Songs", key: "tracks", header: "Your Top 10 Most-Played Tracks" },
-  { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
-  { label: "Top Genres", key: "genres", header: "Your Top 10 Genres" },
+  { label: "Top Songs",   key: "tracks",  header: "Your Top 10 Most-Played Tracks" },
+  { label: "Top Artists", key: "artists", header: "Your Top 10 Artists"            },
+  { label: "Top Genres",  key: "genres",  header: "Your Top 10 Genres"             },
 ];
 
 const TIME_RANGES = [
-  { label: "Last 4 Weeks", value: "short_term" },
+  { label: "Last 4 Weeks",  value: "short_term"  },
   { label: "Last 6 Months", value: "medium_term" },
-  { label: "All Time", value: "long_term" },
+  { label: "All Time",       value: "long_term"   },
 ];
 
 export default function Home() {
   const { data: session } = useSession();
-  const [category, setCategory] = useState("tracks");
+  const [category, setCategory]   = useState("tracks");
   const [timeRange, setTimeRange] = useState("medium_term");
 
   const endpoint = session
@@ -41,21 +41,25 @@ export default function Home() {
     return (
       <main className={styles.container}>
         <h1 className={styles.header}>☀️ Summer Vibes</h1>
-        <button className={styles.button} onClick={() => signIn("spotify")}>Sign in with Spotify</button>
+        <button className={styles.button} onClick={() => signIn("spotify")}>
+          Sign in with Spotify
+        </button>
       </main>
     );
   }
 
-  const currentCat = CATEGORIES.find((c) => c.key === category)!;
-  const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
+  const currentCat      = CATEGORIES.find(c => c.key === category)!;
+  const currentTimeLabel = TIME_RANGES.find(t => t.value === timeRange)!.label;
 
   return (
     <main className={styles.container}>
-      <h1 className={styles.header}>{currentCat.header} ({currentTimeLabel})</h1>
+      <h1 className={styles.header}>
+        {currentCat.header} ({currentTimeLabel})
+      </h1>
 
-      {/* Main category tabs */}
+      {/* Category tabs */}
       <div className={styles.categoryTabContainer}>
-        {CATEGORIES.map((c) => (
+        {CATEGORIES.map(c => (
           <button
             key={c.key}
             className={`${styles.categoryTabButton} ${
@@ -71,9 +75,9 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Time-range sub-tabs */}
+      {/* Time-range tabs */}
       <div className={styles.tabContainer}>
-        {TIME_RANGES.map((t) => (
+        {TIME_RANGES.map(t => (
           <button
             key={t.value}
             className={`${styles.tabButton} ${
@@ -86,7 +90,9 @@ export default function Home() {
         ))}
       </div>
 
-      <button className={styles.button} onClick={() => signOut()}>Sign out</button>
+      <button className={styles.button} onClick={() => signOut()}>
+        Sign out
+      </button>
 
       {error && <p className={styles.error}>Error: {error.message}</p>}
       {!data && !error && <p>Loading…</p>}
@@ -105,7 +111,7 @@ export default function Home() {
                     className={styles.trackImage}
                   />
                   <div className={styles.trackInfo}>
-                    <strong>{item.name}</strong><br />
+                    <strong>{item.name}</strong><br/>
                     {item.artists.map((a: any) => a.name).join(", ")}
                   </div>
                 </li>
@@ -126,7 +132,7 @@ export default function Home() {
                 </li>
               );
             } else {
-              // genres: show the genre’s image from Spotify
+              // genres
               return (
                 <li key={item.genre} className={styles.trackItem}>
                   <Image
