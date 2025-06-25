@@ -7,12 +7,9 @@ const nextConfig: NextConfig = {
     domains: ["i.scdn.co"],
   },
 
-  // (Keep any other settings you already had)
+  // Let production builds succeed even if ESLint finds issues
   eslint: {
     ignoreDuringBuilds: true,
-  },
-  experimental: {
-    allowedDevOrigins: ["http://127.0.0.1:3000", "http://localhost:3000"],
   },
 };
 
