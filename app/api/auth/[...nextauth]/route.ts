@@ -1,6 +1,7 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth, { NextAuthOptions, Session } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
+import type { JWT } from "next-auth/jwt";
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -13,13 +14,28 @@ const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    // TS will infer { token, account } types here
-    async jwt({ token, account }) {
-      if (account?.access_token) token.accessToken = account.access_token;
+    // token is our JWT, account only present on first sign-in
+    async jwt({
+      token,
+      account,
+    }: {
+      token: JWT;
+      account?: { access_token?: string };
+    }): Promise<JWT> {
+      if (account?.access_token) {
+        token.accessToken = account.access_token;
+      }
       return token;
     },
-    // TS will infer { session, token } types here
-    async session({ session, token }) {
+
+    // session is the returned session, token is our JWT
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: JWT & { accessToken?: string };
+    }): Promise<Session> {
       session.user.accessToken = token.accessToken;
       return session;
     },
@@ -28,4 +44,6 @@ const authOptions: NextAuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
+
+// only these two exports are allowed in a Next.js Route Handler
 export { handler as GET, handler as POST };
