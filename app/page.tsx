@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 "use client";
 
 import Image from "next/image";
@@ -41,9 +41,7 @@ export default function Home() {
     return (
       <main className={styles.container}>
         <h1 className={styles.header}>☀️ Summer Vibes</h1>
-        <button className={styles.button} onClick={() => signIn("spotify")}>
-          Sign in with Spotify
-        </button>
+        <button className={styles.button} onClick={() => signIn("spotify")}>Sign in with Spotify</button>
       </main>
     );
   }
@@ -53,9 +51,7 @@ export default function Home() {
 
   return (
     <main className={styles.container}>
-      <h1 className={styles.header}>
-        {currentCat.header} ({currentTimeLabel})
-      </h1>
+      <h1 className={styles.header}>{currentCat.header} ({currentTimeLabel})</h1>
 
       {/* Main category tabs */}
       <div className={styles.categoryTabContainer}>
@@ -90,9 +86,7 @@ export default function Home() {
         ))}
       </div>
 
-      <button className={styles.button} onClick={() => signOut()}>
-        Sign out
-      </button>
+      <button className={styles.button} onClick={() => signOut()}>Sign out</button>
 
       {error && <p className={styles.error}>Error: {error.message}</p>}
       {!data && !error && <p>Loading…</p>}
@@ -111,8 +105,7 @@ export default function Home() {
                     className={styles.trackImage}
                   />
                   <div className={styles.trackInfo}>
-                    <strong>{item.name}</strong>
-                    <br />
+                    <strong>{item.name}</strong><br />
                     {item.artists.map((a: any) => a.name).join(", ")}
                   </div>
                 </li>
