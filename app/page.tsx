@@ -41,17 +41,11 @@ export default function Home() {
     return (
       <main className={styles.container}>
         <h1 className={styles.header}> Spotify Music Top Lists</h1>
-        <button
-      onClick={() =>
-        signIn("spotify", {
-            allbackUrl: `${window.location.origin}/`,
-        })
-      }
-       >
-       Sign in with Spotify
-       </button>
-       </main>
-      );
+        <button onClick={() => signIn("spotify")}>Sign in with Spotify</button>
+
+
+      </main>
+    );
   }
 
   const currentCat      = CATEGORIES.find(c => c.key === category)!;
