@@ -13,14 +13,21 @@ const authOptions: NextAuthOptions = {
       clientId: process.env.SPOTIFY_CLIENT_ID!,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
       authorization: {
+        // Always prompt the user to choose an account
         params: {
           scope: "user-top-read user-read-recently-played",
+          show_dialog: "true",
         },
       },
     }),
   ],
 
-  // 2) Callbacks to persist the Spotify access token and redirect home
+  // 2) Tell NextAuth to use your home page ("/") as the Sign In page
+  pages: {
+    signIn: "/",
+  },
+
+  // 3) Callbacks to persist the Spotify access token and handle redirects
   callbacks: {
     // Persist Spotify access_token on first sign-in
     async jwt({ token, account }) {
@@ -36,16 +43,16 @@ const authOptions: NextAuthOptions = {
       return session;
     },
 
-    // After sign-in, always send the user back to the base URL
+    // After sign-in, always send the user back to your base URL
     async redirect({ url, baseUrl }) {
       return baseUrl;
     },
   },
 
-  // 3) Secret used to encrypt the JWT
+  // 4) Secret used to encrypt the JWT
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// This creates the actual API route handlers (GET & POST)
+// 5) Create and export the actual route handlers
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

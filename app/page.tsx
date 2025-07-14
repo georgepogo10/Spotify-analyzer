@@ -23,7 +23,7 @@ const CATEGORIES = [
 const TIME_RANGES = [
   { label: "Last 4 Weeks",  value: "short_term"  },
   { label: "Last 6 Months", value: "medium_term" },
-  { label: "All Time",       value: "long_term"   },
+  { label: "All Time",      value: "long_term"   },
 ];
 
 export default function Home() {
@@ -40,15 +40,22 @@ export default function Home() {
   if (!session) {
     return (
       <main className={styles.container}>
-        <h1 className={styles.header}> Spotify Music Top Lists</h1>
-        <button onClick={() => signIn("spotify")}>Sign in with Spotify</button>
-
-
+        <h1 className={styles.header}>Spotify Music Top Lists</h1>
+        <button
+          className={styles.button}
+          onClick={() =>
+            signIn("spotify", {
+              callbackUrl: window.location.origin + "/",
+            })
+          }
+        >
+          Sign in with Spotify
+        </button>
       </main>
     );
   }
 
-  const currentCat      = CATEGORIES.find(c => c.key === category)!;
+  const currentCat       = CATEGORIES.find(c => c.key === category)!;
   const currentTimeLabel = TIME_RANGES.find(t => t.value === timeRange)!.label;
 
   return (
