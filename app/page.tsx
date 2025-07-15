@@ -18,10 +18,12 @@ import {
 
 // Custom tick component to wrap genre labels onto multiple lines
 const CustomYAxisTick = ({ x, y, payload }: any) => {
-  const words = (payload.value as string).split(' ');
+  const rawValue = payload.value;
+  const textValue = typeof rawValue === 'string' ? rawValue : String(rawValue);
+  const wordList = textValue.split(' ');
   return (
     <text x={x - 10} y={y + 4} textAnchor="end" fontSize={12} fill="#333">
-      {words.map((word: string, i: number) => (
+      {wordList.map((word: string, i: number) => (
         <tspan x={x - 10} dy={i === 0 ? 0 : 14} key={i}>
           {word}
         </tspan>
