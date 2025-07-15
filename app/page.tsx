@@ -1,11 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import React, { useState } from "react";
 import Image from "next/image";
-import { useState } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
 import useSWR from "swr";
+import { useSession, signIn, signOut } from "next-auth/react";
 import styles from "./page.module.css";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -18,6 +27,7 @@ const CATEGORIES = [
   { label: "Top Songs",   key: "tracks",  header: "Your Top 10 Most-Played Tracks" },
   { label: "Top Artists", key: "artists", header: "Your Top 10 Artists"            },
   { label: "Top Genres",  key: "genres",  header: "Your Top 10 Genres"             },
+  { label: "Analyze",     key: "analyze", header: "Listening Time by Genre"         },
 ];
 
 const TIME_RANGES = [
@@ -32,7 +42,9 @@ export default function Home() {
   const [timeRange, setTimeRange] = useState("medium_term");
 
   const endpoint = session
-    ? `/api/spotify/top-${category}?time_range=${timeRange}`
+    ? category === "analyze"
+      ? `/api/spotify/genre-duration?time_range=${timeRange}`
+      : `/api/spotify/top-${category}?time_range=${timeRange}`
     : null;
 
   const { data, error } = useSWR(endpoint, fetcher);
@@ -61,7 +73,7 @@ export default function Home() {
   return (
     <main className={styles.container}>
       <h1 className={styles.header}>
-        {currentCat.header} ({currentTimeLabel})
+        {currentCat.header} {category !== "analyze" && `(${currentTimeLabel})`}
       </h1>
 
       {/* Category tabs */}
@@ -104,7 +116,30 @@ export default function Home() {
       {error && <p className={styles.error}>Error: {error.message}</p>}
       {!data && !error && <p>Loading…</p>}
 
-      {data && (
+      {data && category === "analyze" ? (
+        <div style={{ width: '100%', height: 300 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              layout="vertical"
+              margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                type="number"
+                label={{ value: "Minutes Listened", position: "bottom" }}
+              />
+              <YAxis
+                dataKey="genre"
+                type="category"
+                width={100}
+              />
+              <Tooltip formatter={(val: number) => `${val} min`} />
+              <Bar dataKey="minutes" fill="#9333EA" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
         <ul className={styles.trackList}>
           {data.map((item: any) => {
             if (category === "tracks") {
@@ -138,8 +173,7 @@ export default function Home() {
                   </div>
                 </li>
               );
-            } else {
-              // genres
+            } else if (category === "genres") {
               return (
                 <li key={item.genre} className={styles.trackItem}>
                   <Image
@@ -155,6 +189,7 @@ export default function Home() {
                 </li>
               );
             }
+            return null;
           })}
         </ul>
       )}
