@@ -49,6 +49,7 @@ export default function Home() {
 
   const { data, error } = useSWR(endpoint, fetcher);
 
+  // Not signed in
   if (!session) {
     return (
       <main className={styles.container}>
@@ -63,6 +64,22 @@ export default function Home() {
         >
           Sign in with Spotify
         </button>
+      </main>
+    );
+  }
+
+  // Signed in, but still loading or error
+  if (error) {
+    return (
+      <main className={styles.container}>
+        <p className={styles.error}>Error: {error.message}</p>
+      </main>
+    );
+  }
+  if (!data) {
+    return (
+      <main className={styles.container}>
+        <p>Loading…</p>
       </main>
     );
   }
@@ -113,10 +130,8 @@ export default function Home() {
         Sign out
       </button>
 
-      {error && <p className={styles.error}>Error: {error.message}</p>}
-      {!data && !error && <p>Loading…</p>}
-
-      {data && category === "analyze" ? (
+      {/* Main content */}
+      {category === "analyze" ? (
         <div style={{ width: '100%', height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -129,11 +144,7 @@ export default function Home() {
                 type="number"
                 label={{ value: "Minutes Listened", position: "bottom" }}
               />
-              <YAxis
-                dataKey="genre"
-                type="category"
-                width={100}
-              />
+              <YAxis dataKey="genre" type="category" width={100} />
               <Tooltip formatter={(val: number) => `${val} min`} />
               <Bar dataKey="minutes" fill="#9333EA" />
             </BarChart>
@@ -173,7 +184,7 @@ export default function Home() {
                   </div>
                 </li>
               );
-            } else if (category === "genres") {
+            } else /* genres */ {
               return (
                 <li key={item.genre} className={styles.trackItem}>
                   <Image
@@ -189,7 +200,6 @@ export default function Home() {
                 </li>
               );
             }
-            return null;
           })}
         </ul>
       )}
