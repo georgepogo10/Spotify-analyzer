@@ -134,19 +134,27 @@ export default function Home() {
           <h2 style={{ fontSize: '1.5rem', margin: '1rem 0' }}>
             Listening Time by Genre
           </h2>
-          <div style={{ width: '100%', height: 300 }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '1.5rem', color: '#555' }}>
+            Shows total minutes you’ve spent listening to each genre over the {currentTimeLabel.toLowerCase()} period.
+          </h3>
+          <div style={{ width: '100%', height: 400 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data}
                 layout="vertical"
-                margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+                margin={{ top: 20, right: 30, left: 150, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   type="number"
                   label={{ value: "Minutes Listened", position: "bottom" }}
                 />
-                <YAxis dataKey="genre" type="category" width={100} />
+                <YAxis
+                  dataKey="genre"
+                  type="category"
+                  width={150}
+                  tick={{ fontSize: 12, width: 150, wordWrap: 'break-word' }}
+                />
                 <Tooltip formatter={(val: number) => `${val} min`} />
                 <Bar dataKey="minutes" fill="#9333EA" />
               </BarChart>
