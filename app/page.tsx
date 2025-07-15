@@ -49,7 +49,6 @@ export default function Home() {
 
   const { data, error } = useSWR(endpoint, fetcher);
 
-  // Not signed in
   if (!session) {
     return (
       <main className={styles.container}>
@@ -57,9 +56,7 @@ export default function Home() {
         <button
           className={styles.button}
           onClick={() =>
-            signIn("spotify", {
-              callbackUrl: window.location.origin + "/",
-            })
+            signIn("spotify", { callbackUrl: window.location.origin + "/" })
           }
         >
           Sign in with Spotify
@@ -68,7 +65,6 @@ export default function Home() {
     );
   }
 
-  // Signed in, but still loading or error
   if (error) {
     return (
       <main className={styles.container}>
@@ -90,7 +86,7 @@ export default function Home() {
   return (
     <main className={styles.container}>
       <h1 className={styles.header}>
-        {currentCat.header} {category !== "analyze" && `(${currentTimeLabel})`}
+        {currentCat.header}{category !== "analyze" && ` (${currentTimeLabel})`}
       </h1>
 
       {/* Category tabs */}
@@ -111,20 +107,22 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Time-range tabs */}
-      <div className={styles.tabContainer}>
-        {TIME_RANGES.map(t => (
-          <button
-            key={t.value}
-            className={`${styles.tabButton} ${
-              timeRange === t.value ? styles.tabButtonActive : ""
-            }`}
-            onClick={() => setTimeRange(t.value)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Time-range tabs (hide on Analyze) */}
+      {category !== "analyze" && (
+        <div className={styles.tabContainer}>
+          {TIME_RANGES.map(t => (
+            <button
+              key={t.value}
+              className={`${styles.tabButton} ${
+                timeRange === t.value ? styles.tabButtonActive : ""
+              }`}
+              onClick={() => setTimeRange(t.value)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <button className={styles.button} onClick={() => signOut()}>
         Sign out
@@ -132,24 +130,29 @@ export default function Home() {
 
       {/* Main content */}
       {category === "analyze" ? (
-        <div style={{ width: '100%', height: 300 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              layout="vertical"
-              margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                type="number"
-                label={{ value: "Minutes Listened", position: "bottom" }}
-              />
-              <YAxis dataKey="genre" type="category" width={100} />
-              <Tooltip formatter={(val: number) => `${val} min`} />
-              <Bar dataKey="minutes" fill="#9333EA" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <>
+          <h2 style={{ fontSize: '1.5rem', margin: '1rem 0' }}>
+            Listening Time by Genre
+          </h2>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data}
+                layout="vertical"
+                margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  type="number"
+                  label={{ value: "Minutes Listened", position: "bottom" }}
+                />
+                <YAxis dataKey="genre" type="category" width={100} />
+                <Tooltip formatter={(val: number) => `${val} min`} />
+                <Bar dataKey="minutes" fill="#9333EA" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
       ) : (
         <ul className={styles.trackList}>
           {data.map((item: any) => {
