@@ -16,6 +16,20 @@ import {
   CartesianGrid,
 } from "recharts";
 
+// Custom tick component to wrap genre labels onto multiple lines
+const CustomYAxisTick = ({ x, y, payload }: any) => {
+  const words = (payload.value as string).split(' ');
+  return (
+    <text x={x - 10} y={y + 4} textAnchor="end" fontSize={12} fill="#333">
+      {words.map((word: string, i: number) => (
+        <tspan x={x - 10} dy={i === 0 ? 0 : 14} key={i}>
+          {word}
+        </tspan>
+      ))}
+    </text>
+  );
+};
+
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   const data = await res.json();
@@ -145,15 +159,12 @@ export default function Home() {
                 margin={{ top: 20, right: 30, left: 150, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  type="number"
-                  label={{ value: "Minutes Listened", position: "bottom" }}
-                />
+                <XAxis type="number" />
                 <YAxis
                   dataKey="genre"
                   type="category"
                   width={150}
-                  tick={{ fontSize: 12, width: 150, wordWrap: 'break-word' }}
+                  tick={<CustomYAxisTick />}
                 />
                 <Tooltip formatter={(val: number) => `${val} min`} />
                 <Bar dataKey="minutes" fill="#9333EA" />
