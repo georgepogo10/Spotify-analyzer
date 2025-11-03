@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import Image from "next/image";
 import useSWR from "swr";
 import { useSession, signIn, signOut } from "next-auth/react";
-import styles from "./page.module.css";
 import {
   ResponsiveContainer,
   BarChart,
@@ -20,38 +19,32 @@ import {
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   const text = await res.text();
-
-  // If we got back HTML (e.g. a 404 page), bail out with a clear error
   if (text.trim().startsWith("<!DOCTYPE")) {
-    throw new Error(
-      "Expected JSON from API but got HTML. Check that the API route exists."
-    );
+    throw new Error("Expected JSON from API but got HTML. Check API route.");
   }
-
   const data = JSON.parse(text);
   if (!res.ok) throw new Error(data.error || "Fetch failed");
   return data;
 };
 
 const CATEGORIES = [
-  { label: "Top Songs",   key: "tracks",  header: "Your Top 10 Tracks" },
+  { label: "Top Songs", key: "tracks", header: "Your Top 10 Tracks" },
   { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
-  { label: "Top Genres",  key: "genres",  header: "Your Top 10 Genres" },
-  { label: "Analyze",     key: "analyze", header: "Audio-Feature Correlations" },
+  { label: "Top Genres", key: "genres", header: "Your Top 10 Genres" },
+  { label: "Analyze", key: "analyze", header: "Audio-Feature Correlations" },
 ];
 
 const TIME_RANGES = [
-  { label: "Last 4 Weeks",  value: "short_term"  },
+  { label: "Last 4 Weeks", value: "short_term" },
   { label: "Last 6 Months", value: "medium_term" },
-  { label: "All Time",      value: "long_term"   },
+  { label: "All Time", value: "long_term" },
 ];
 
 export default function Home() {
   const { data: session } = useSession();
-  const [category, setCategory]   = useState("tracks");
+  const [category, setCategory] = useState("tracks");
   const [timeRange, setTimeRange] = useState("medium_term");
 
-  // Choose endpoint based on category
   const endpoint = session
     ? category === "analyze"
       ? `/api/spotify/feature-correlation?time_range=${timeRange}`
@@ -60,16 +53,54 @@ export default function Home() {
 
   const { data, error } = useSWR(endpoint, fetcher);
 
-  // 1) Not signed in
+  // FALL THEME COLORS
+  const fallGradient =
+    "linear-gradient(135deg, #FFB347 0%, #FF7E5F 40%, #B34700 100%)";
+  const fallAccent = "#FF9F55";
+  const deepBrown = "#3B1C0A";
+  const softCream = "#FFF8F1";
+  const warmText = "#5C3D2E";
+
+  // Not signed in
   if (!session) {
     return (
-      <main className={styles.container}>
-        <h1 className={styles.header}>Spotify Music Top Lists</h1>
+      <main
+        style={{
+          minHeight: "100vh",
+          background: fallGradient,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          color: softCream,
+          fontFamily: "Inter, sans-serif",
+          textAlign: "center",
+          padding: "2rem",
+        }}
+      >
+        <h1 style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: "1rem" }}>
+          🍂 Spotify Autumn Analyzer 🍁
+        </h1>
+        <p style={{ fontSize: "1.1rem", marginBottom: "1.5rem", maxWidth: 500 }}>
+          Discover your top tracks and artists this season in warm autumn style.
+        </p>
         <button
-          className={styles.button}
+          style={{
+            backgroundColor: softCream,
+            color: deepBrown,
+            border: "none",
+            borderRadius: 12,
+            padding: "0.75rem 1.5rem",
+            fontSize: "1rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "transform 0.2s ease",
+          }}
           onClick={() =>
             signIn("spotify", { callbackUrl: window.location.origin + "/" })
           }
+          onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+          onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           Sign in with Spotify
         </button>
@@ -77,58 +108,137 @@ export default function Home() {
     );
   }
 
-  // 2) Error or loading states
-  if (error) {
+  // Error / Loading states
+  if (error)
     return (
-      <main className={styles.container}>
-        <p className={styles.error}>Error: {error.message}</p>
+      <main
+        style={{
+          background: softCream,
+          color: deepBrown,
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "1.1rem",
+        }}
+      >
+        Error: {error.message}
       </main>
     );
-  }
-  if (!data) {
-    return (
-      <main className={styles.container}>
-        <p>Loading…</p>
-      </main>
-    );
-  }
 
-  const currentCat       = CATEGORIES.find(c => c.key === category)!;
-  const currentTimeLabel = TIME_RANGES.find(t => t.value === timeRange)!.label;
+  if (!data)
+    return (
+      <main
+        style={{
+          background: softCream,
+          color: deepBrown,
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "1.1rem",
+        }}
+      >
+        Loading your fall vibes…
+      </main>
+    );
+
+  const currentCat = CATEGORIES.find((c) => c.key === category)!;
+  const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
 
   return (
-    <main className={styles.container}>
-      {/* Title with time-range */}
-      <h1 className={styles.header}>
-        {currentCat.header} ({currentTimeLabel})
-      </h1>
+    <main
+      style={{
+        background: `linear-gradient(to bottom right, #FFF8F1, #FFD6A5)`,
+        minHeight: "100vh",
+        fontFamily: "Inter, sans-serif",
+        color: warmText,
+        padding: "2rem",
+      }}
+    >
+      {/* Header */}
+      <header
+        style={{
+          textAlign: "center",
+          marginBottom: "2rem",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "2rem",
+            fontWeight: 700,
+            background: fallGradient,
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            marginBottom: "0.5rem",
+          }}
+        >
+          {currentCat.header}
+        </h1>
+        <h2 style={{ fontSize: "1rem", color: "#7A4B2E" }}>
+          ({currentTimeLabel})
+        </h2>
+      </header>
 
-      {/* Category tabs */}
-      <div className={styles.categoryTabContainer}>
-        {CATEGORIES.map(c => (
+      {/* Category Tabs */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "1rem",
+          flexWrap: "wrap",
+          marginBottom: "1.5rem",
+        }}
+      >
+        {CATEGORIES.map((c) => (
           <button
             key={c.key}
-            className={`${styles.categoryTabButton} ${
-              category === c.key ? styles.categoryTabButtonActive : ""
-            }`}
-            onClick={() => {
-              setCategory(c.key);
-              setTimeRange("medium_term");
+            style={{
+              background:
+                category === c.key ? fallGradient : "rgba(255,255,255,0.6)",
+              color: category === c.key ? softCream : deepBrown,
+              border: "none",
+              borderRadius: 20,
+              padding: "0.5rem 1rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow:
+                category === c.key
+                  ? "0 4px 12px rgba(179, 71, 0, 0.3)"
+                  : "0 2px 6px rgba(0,0,0,0.1)",
+              transition: "all 0.2s ease",
             }}
+            onClick={() => setCategory(c.key)}
           >
             {c.label}
           </button>
         ))}
       </div>
 
-      {/* Time-range tabs */}
-      <div className={styles.tabContainer}>
-        {TIME_RANGES.map(t => (
+      {/* Time Range Tabs */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "1rem",
+          marginBottom: "2rem",
+        }}
+      >
+        {TIME_RANGES.map((t) => (
           <button
             key={t.value}
-            className={`${styles.tabButton} ${
-              timeRange === t.value ? styles.tabButtonActive : ""
-            }`}
+            style={{
+              background:
+                timeRange === t.value ? fallAccent : "rgba(255,255,255,0.7)",
+              color: timeRange === t.value ? deepBrown : warmText,
+              border: "none",
+              borderRadius: 16,
+              padding: "0.4rem 0.9rem",
+              cursor: "pointer",
+              fontWeight: 600,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              transition: "all 0.2s ease",
+            }}
             onClick={() => setTimeRange(t.value)}
           >
             {t.label}
@@ -137,31 +247,57 @@ export default function Home() {
       </div>
 
       {/* Sign-out */}
-      <button className={styles.button} onClick={() => signOut()}>
-        Sign out
-      </button>
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <button
+          style={{
+            backgroundColor: "#7A4B2E",
+            color: "white",
+            border: "none",
+            borderRadius: 12,
+            padding: "0.5rem 1rem",
+            fontSize: "0.9rem",
+            cursor: "pointer",
+          }}
+          onClick={() => signOut()}
+        >
+          Sign Out
+        </button>
+      </div>
 
-      {/* Main content */}
+      {/* Main Content */}
       {category === "analyze" ? (
         <>
-          <h2 style={{ fontSize: "1.25rem", margin: "1rem 0" }}>
-            Correlation Heatmap
+          <h2 style={{ textAlign: "center", fontSize: "1.3rem", marginBottom: "1rem" }}>
+            🍁 Correlation Heatmap
           </h2>
-          <h3 style={{ fontSize: "1rem", marginBottom: "1.5rem", color: "#555" }}>
-            Displays Pearson correlation coefficients between audio features
-            (–1 to +1) for your top tracks over the selected period.
-          </h3>
-          {/* Heatmap table */}
-          <div style={{ overflowX: "auto" }}>
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "0.95rem",
+              marginBottom: "1.5rem",
+              color: "#7A4B2E",
+            }}
+          >
+            See how your top tracks’ audio features correlate over time.
+          </p>
+          <div
+            style={{
+              overflowX: "auto",
+              background: "rgba(255,255,255,0.9)",
+              borderRadius: 12,
+              padding: "1rem",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+            }}
+          >
             <table style={{ borderCollapse: "collapse", margin: "auto" }}>
               <thead>
                 <tr>
-                  <th style={{ padding: 4 }}></th>
+                  <th style={{ padding: 6 }}></th>
                   {(data.keys as string[]).map((col) => (
                     <th
                       key={col}
                       style={{
-                        padding: 4,
+                        padding: 6,
                         fontSize: "0.8rem",
                         textAlign: "center",
                       }}
@@ -176,7 +312,7 @@ export default function Home() {
                   <tr key={rowKey}>
                     <th
                       style={{
-                        padding: 4,
+                        padding: 6,
                         fontSize: "0.8rem",
                         textAlign: "right",
                       }}
@@ -184,10 +320,11 @@ export default function Home() {
                       {rowKey}
                     </th>
                     {(data.matrix as number[][])[i].map((val, j) => {
-                      const red = val > 0 ? Math.round(val * 255) : 0;
-                      const blue = val < 0 ? Math.round(-val * 255) : 0;
-                      const bg = `rgb(${red},0,${blue})`;
-                      const shade = val > 0.5 ? "#fff" : "#000";
+                      const red = val > 0 ? Math.round(val * 200) : 50;
+                      const green = 80;
+                      const blue = val < 0 ? Math.round(-val * 200) : 50;
+                      const bg = `rgb(${red},${green},${blue})`;
+                      const color = Math.abs(val) > 0.5 ? "#fff" : "#000";
                       return (
                         <td
                           key={j}
@@ -195,9 +332,10 @@ export default function Home() {
                             width: 40,
                             height: 40,
                             backgroundColor: bg,
-                            color: shade,
+                            color,
                             textAlign: "center",
                             fontSize: "0.75rem",
+                            borderRadius: 4,
                           }}
                         >
                           {val.toFixed(2)}
@@ -211,58 +349,71 @@ export default function Home() {
           </div>
         </>
       ) : (
-        /* Top lists */
-        <ul className={styles.trackList}>
-          {(data as any[]).map((item: any) => {
-            if (category === "tracks") {
-              return (
-                <li key={item.id} className={styles.trackItem}>
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            display: "grid",
+            gap: "1rem",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          }}
+        >
+          {(data as any[]).map((item: any, idx) => {
+            const image =
+              category === "tracks"
+                ? item.album.images[2]?.url
+                : category === "artists"
+                ? item.images[2]?.url
+                : item.imageUrl;
+            const label =
+              category === "tracks"
+                ? `${item.name} — ${item.artists
+                    .map((a: any) => a.name)
+                    .join(", ")}`
+                : category === "artists"
+                ? item.name
+                : item.genre;
+
+            return (
+              <li
+                key={item.id || item.genre}
+                style={{
+                  background:
+                    idx % 2 === 0
+                      ? "rgba(255,255,255,0.9)"
+                      : "rgba(255, 238, 220, 0.9)",
+                  borderRadius: 16,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  padding: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  transition: "transform 0.2s ease",
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.03)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
+              >
+                {image && (
                   <Image
-                    src={item.album.images[2]?.url}
-                    alt={item.name}
-                    width={48}
-                    height={48}
-                    className={styles.trackImage}
+                    src={image}
+                    alt={label}
+                    width={60}
+                    height={60}
+                    style={{
+                      borderRadius: 12,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    }}
                   />
-                  <div className={styles.trackInfo}>
-                    <strong>{item.name}</strong>
-                    <br />
-                    {item.artists.map((a: any) => a.name).join(", ")}
-                  </div>
-                </li>
-              );
-            } else if (category === "artists") {
-              return (
-                <li key={item.id} className={styles.trackItem}>
-                  <Image
-                    src={item.images[2]?.url}
-                    alt={item.name}
-                    width={48}
-                    height={48}
-                    className={styles.trackImage}
-                  />
-                  <div className={styles.trackInfo}>
-                    <strong>{item.name}</strong>
-                  </div>
-                </li>
-              );
-            } else {
-              // genres
-              return (
-                <li key={item.genre} className={styles.trackItem}>
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.genre}
-                    width={48}
-                    height={48}
-                    className={styles.trackImage}
-                  />
-                  <div className={styles.trackInfo}>
-                    <strong>{item.genre}</strong>
-                  </div>
-                </li>
-              );
-            }
+                )}
+                <div>
+                  <strong style={{ fontSize: "1rem" }}>{label}</strong>
+                </div>
+              </li>
+            );
           })}
         </ul>
       )}
