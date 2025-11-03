@@ -5,15 +5,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import useSWR from "swr";
 import { useSession, signIn, signOut } from "next-auth/react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
+import { Leaf } from "lucide-react";
 
 // Fetch helper
 const fetcher = async (url: string) => {
@@ -31,24 +23,22 @@ const CATEGORIES = [
   { label: "Top Songs", key: "tracks", header: "Your Top 10 Tracks" },
   { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
   { label: "Top Genres", key: "genres", header: "Your Top 10 Genres" },
-  { label: "Analyze", key: "analyze", header: "Audio-Feature Correlations" },
 ];
 
 const TIME_RANGES = [
-  { label: "Last 4 Weeks", value: "short_term" },
+  { label: "Last Month", value: "short_term" },
   { label: "Last 6 Months", value: "medium_term" },
-  { label: "All Time", value: "long_term" },
+  { label: "One Year+", value: "long_term" },
 ];
 
 export default function Home() {
   const { data: session } = useSession();
   const [category, setCategory] = useState("tracks");
   const [timeRange, setTimeRange] = useState("medium_term");
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
   const endpoint = session
-    ? category === "analyze"
-      ? `/api/spotify/feature-correlation?time_range=${timeRange}`
-      : `/api/spotify/top-${category}?time_range=${timeRange}`
+    ? `/api/spotify/top-${category}?time_range=${timeRange}`
     : null;
 
   const { data, error } = useSWR(endpoint, fetcher);
@@ -145,6 +135,15 @@ export default function Home() {
 
   const currentCat = CATEGORIES.find((c) => c.key === category)!;
   const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
+
+  // Remove a song (only client-side)
+  const handleRemove = (id: string) => {
+    setRemovedIds((prev) => new Set([...prev, id]));
+  };
+
+  const filteredData = (data as any[]).filter(
+    (item) => !removedIds.has(item.id)
+  );
 
   return (
     <main
@@ -264,139 +263,68 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Main Content */}
-      {category === "analyze" ? (
-        <>
-          <h2 style={{ textAlign: "center", fontSize: "1.3rem", marginBottom: "1rem" }}>
-            🍁 Correlation Heatmap
-          </h2>
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "0.95rem",
-              marginBottom: "1.5rem",
-              color: "#7A4B2E",
-            }}
-          >
-            See how your top tracks’ audio features correlate over time.
-          </p>
-          <div
-            style={{
-              overflowX: "auto",
-              background: "rgba(255,255,255,0.9)",
-              borderRadius: 12,
-              padding: "1rem",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-            }}
-          >
-            <table style={{ borderCollapse: "collapse", margin: "auto" }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: 6 }}></th>
-                  {(data.keys as string[]).map((col) => (
-                    <th
-                      key={col}
-                      style={{
-                        padding: 6,
-                        fontSize: "0.8rem",
-                        textAlign: "center",
-                      }}
-                    >
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {(data.keys as string[]).map((rowKey, i) => (
-                  <tr key={rowKey}>
-                    <th
-                      style={{
-                        padding: 6,
-                        fontSize: "0.8rem",
-                        textAlign: "right",
-                      }}
-                    >
-                      {rowKey}
-                    </th>
-                    {(data.matrix as number[][])[i].map((val, j) => {
-                      const red = val > 0 ? Math.round(val * 200) : 50;
-                      const green = 80;
-                      const blue = val < 0 ? Math.round(-val * 200) : 50;
-                      const bg = `rgb(${red},${green},${blue})`;
-                      const color = Math.abs(val) > 0.5 ? "#fff" : "#000";
-                      return (
-                        <td
-                          key={j}
-                          style={{
-                            width: 40,
-                            height: 40,
-                            backgroundColor: bg,
-                            color,
-                            textAlign: "center",
-                            fontSize: "0.75rem",
-                            borderRadius: 4,
-                          }}
-                        >
-                          {val.toFixed(2)}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      ) : (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            display: "grid",
-            gap: "1rem",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          }}
-        >
-          {(data as any[]).map((item: any, idx) => {
-            const image =
-              category === "tracks"
-                ? item.album.images[2]?.url
-                : category === "artists"
-                ? item.images[2]?.url
-                : item.imageUrl;
-            const label =
-              category === "tracks"
-                ? `${item.name} — ${item.artists
-                    .map((a: any) => a.name)
-                    .join(", ")}`
-                : category === "artists"
-                ? item.name
-                : item.genre;
+      {/* Top Items List */}
+      <ul
+        style={{
+          listStyle: "none",
+          padding: 0,
+          display: "grid",
+          gap: "1rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+        }}
+      >
+        {filteredData.map((item: any, idx) => {
+          const image =
+            category === "tracks"
+              ? item.album.images[2]?.url
+              : category === "artists"
+              ? item.images[2]?.url
+              : item.imageUrl;
+          const label =
+            category === "tracks"
+              ? `${item.name} — ${item.artists
+                  .map((a: any) => a.name)
+                  .join(", ")}`
+              : category === "artists"
+              ? item.name
+              : item.genre;
 
-            return (
-              <li
-                key={item.id || item.genre}
-                style={{
-                  background:
-                    idx % 2 === 0
-                      ? "rgba(255,255,255,0.9)"
-                      : "rgba(255, 238, 220, 0.9)",
-                  borderRadius: 16,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  padding: "1rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                  transition: "transform 0.2s ease",
-                }}
-                onMouseOver={(e) =>
-                  (e.currentTarget.style.transform = "scale(1.03)")
-                }
-                onMouseOut={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
-                }
-              >
+          return (
+            <li
+              key={item.id || item.genre}
+              style={{
+                background:
+                  idx % 2 === 0
+                    ? "rgba(255,255,255,0.9)"
+                    : "rgba(255, 238, 220, 0.9)",
+                borderRadius: 16,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                padding: "1rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1rem",
+                transition: "transform 0.2s ease",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.03)")
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "1.1rem",
+                    color: "#7A4B2E",
+                    minWidth: "1.5rem",
+                    textAlign: "center",
+                  }}
+                >
+                  {idx + 1}.
+                </span>
                 {image && (
                   <Image
                     src={image}
@@ -412,11 +340,17 @@ export default function Home() {
                 <div>
                   <strong style={{ fontSize: "1rem" }}>{label}</strong>
                 </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+              </div>
+              <Leaf
+                size={22}
+                color="#7A4B2E"
+                style={{ cursor: "pointer", flexShrink: 0 }}
+                onClick={() => handleRemove(item.id)}
+              />
+            </li>
+          );
+        })}
+      </ul>
     </main>
   );
 }
