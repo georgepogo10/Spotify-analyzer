@@ -20,9 +20,7 @@ const fetcher = async (url: string) => {
   const res = await fetch(url);
   const text = await res.text();
   if (text.trim().startsWith("<!DOCTYPE")) {
-    throw new Error(
-      "Expected JSON from API but got HTML. Check that the API route exists."
-    );
+    throw new Error("Expected JSON from API but got HTML. Check API route.");
   }
   const data = JSON.parse(text);
   if (!res.ok) throw new Error(data.error || "Fetch failed");
@@ -30,16 +28,16 @@ const fetcher = async (url: string) => {
 };
 
 const CATEGORIES = [
-  { label: "Top Songs", key: "tracks", header: "Your Top 10 Tracks", icon: "🎵" },
-  { label: "Top Artists", key: "artists", header: "Your Top 10 Artists", icon: "🎤" },
-  { label: "Top Genres", key: "genres", header: "Your Top 10 Genres", icon: "🎸" },
-  { label: "Analyze", key: "analyze", header: "Audio-Feature Correlations", icon: "📊" },
+  { label: "Top Songs", key: "tracks", header: "Your Top 10 Tracks" },
+  { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
+  { label: "Top Genres", key: "genres", header: "Your Top 10 Genres" },
+  { label: "Analyze", key: "analyze", header: "Audio-Feature Correlations" },
 ];
 
 const TIME_RANGES = [
-  { label: "Last 4 Weeks", value: "short_term", emoji: "🍂" },
-  { label: "Last 6 Months", value: "medium_term", emoji: "🍁" },
-  { label: "All Time", value: "long_term", emoji: "🎃" },
+  { label: "Last 4 Weeks", value: "short_term" },
+  { label: "Last 6 Months", value: "medium_term" },
+  { label: "All Time", value: "long_term" },
 ];
 
 export default function Home() {
@@ -55,658 +53,370 @@ export default function Home() {
 
   const { data, error } = useSWR(endpoint, fetcher);
 
+  // FALL THEME COLORS
+  const fallGradient =
+    "linear-gradient(135deg, #FFB347 0%, #FF7E5F 40%, #B34700 100%)";
+  const fallAccent = "#FF9F55";
+  const deepBrown = "#3B1C0A";
+  const softCream = "#FFF8F1";
+  const warmText = "#5C3D2E";
+
   // Not signed in
   if (!session) {
     return (
-      <main style={styles.fallContainer}>
-        <div style={styles.fallLeaves}></div>
-        <div style={styles.authCard}>
-          <div style={styles.pumpkinIcon}>🎃</div>
-          <h1 style={styles.fallHeader}>Autumn Spotify Insights</h1>
-          <p style={styles.fallSubtitle}>
-            Discover your musical journey through the seasons
-          </p>
-          <button
-            style={styles.fallButton}
-            onClick={() =>
-              signIn("spotify", {
-                callbackUrl: window.location.origin + "/",
-              })
-            }
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 12px 30px rgba(255, 127, 62, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 8px 20px rgba(255, 127, 62, 0.3)';
-            }}
-          >
-            <span style={styles.buttonIcon}>🍂</span>
-            Sign in with Spotify
-          </button>
-        </div>
+      <main
+        style={{
+          minHeight: "100vh",
+          background: fallGradient,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          color: softCream,
+          fontFamily: "Inter, sans-serif",
+          textAlign: "center",
+          padding: "2rem",
+        }}
+      >
+        <h1 style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: "1rem" }}>
+          🍂 Spotify Autumn Analyzer 🍁
+        </h1>
+        <p style={{ fontSize: "1.1rem", marginBottom: "1.5rem", maxWidth: 500 }}>
+          Discover your top tracks and artists this season in warm autumn style.
+        </p>
+        <button
+          style={{
+            backgroundColor: softCream,
+            color: deepBrown,
+            border: "none",
+            borderRadius: 12,
+            padding: "0.75rem 1.5rem",
+            fontSize: "1rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "transform 0.2s ease",
+          }}
+          onClick={() =>
+            signIn("spotify", { callbackUrl: window.location.origin + "/" })
+          }
+          onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+          onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          Sign in with Spotify
+        </button>
       </main>
     );
   }
 
-  // Error or loading states
-  if (error) {
+  // Error / Loading states
+  if (error)
     return (
-      <main style={styles.fallContainer}>
-        <div style={styles.errorCard}>
-          <p style={styles.fallError}>🍂 Error: {error.message}</p>
-        </div>
+      <main
+        style={{
+          background: softCream,
+          color: deepBrown,
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "1.1rem",
+        }}
+      >
+        Error: {error.message}
       </main>
     );
-  }
 
-  if (!data) {
+  if (!data)
     return (
-      <main style={styles.fallContainer}>
-        <div style={styles.loadingCard}>
-          <div style={styles.spinner}></div>
-          <p style={styles.loadingText}>Loading your autumn playlist...</p>
-        </div>
+      <main
+        style={{
+          background: softCream,
+          color: deepBrown,
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "1.1rem",
+        }}
+      >
+        Loading your fall vibes…
       </main>
     );
-  }
 
   const currentCat = CATEGORIES.find((c) => c.key === category)!;
   const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
 
   return (
-    <main style={styles.fallContainer}>
-      <div style={styles.fallLeaves}></div>
-      
-      <div style={styles.dashboardHeader}>
-        <h1 style={styles.fallHeaderMain}>
-          {currentCat.icon} {currentCat.header}
-        </h1>
-        <p style={styles.timeRangeLabel}>{currentTimeLabel}</p>
-        <button 
-          style={styles.signOutButton} 
-          onClick={() => signOut()}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 127, 62, 0.2)';
-            e.currentTarget.style.borderColor = '#ff7f3e';
-            e.currentTarget.style.color = '#ff7f3e';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            e.currentTarget.style.color = '#d4a574';
+    <main
+      style={{
+        background: `linear-gradient(to bottom right, #FFF8F1, #FFD6A5)`,
+        minHeight: "100vh",
+        fontFamily: "Inter, sans-serif",
+        color: warmText,
+        padding: "2rem",
+      }}
+    >
+      {/* Header */}
+      <header
+        style={{
+          textAlign: "center",
+          marginBottom: "2rem",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "2rem",
+            fontWeight: 700,
+            background: fallGradient,
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            marginBottom: "0.5rem",
           }}
         >
-          Sign out
-        </button>
-      </div>
+          {currentCat.header}
+        </h1>
+        <h2 style={{ fontSize: "1rem", color: "#7A4B2E" }}>
+          ({currentTimeLabel})
+        </h2>
+      </header>
 
-      {/* Category tabs */}
-      <div style={styles.categoryGrid}>
+      {/* Category Tabs */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "1rem",
+          flexWrap: "wrap",
+          marginBottom: "1.5rem",
+        }}
+      >
         {CATEGORIES.map((c) => (
           <button
             key={c.key}
             style={{
-              ...styles.categoryCard,
-              ...(category === c.key ? styles.categoryCardActive : {}),
+              background:
+                category === c.key ? fallGradient : "rgba(255,255,255,0.6)",
+              color: category === c.key ? softCream : deepBrown,
+              border: "none",
+              borderRadius: 20,
+              padding: "0.5rem 1rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow:
+                category === c.key
+                  ? "0 4px 12px rgba(179, 71, 0, 0.3)"
+                  : "0 2px 6px rgba(0,0,0,0.1)",
+              transition: "all 0.2s ease",
             }}
-            onClick={() => {
-              setCategory(c.key);
-              setTimeRange("medium_term");
-            }}
-            onMouseEnter={(e) => {
-              if (category !== c.key) {
-                e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.borderColor = '#ff7f3e';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(255, 127, 62, 0.3)';
-                e.currentTarget.style.background = 'rgba(255, 127, 62, 0.1)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (category !== c.key) {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = 'rgba(255, 127, 62, 0.2)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-                e.currentTarget.style.background = 'rgba(45, 24, 16, 0.85)';
-              }
-            }}
+            onClick={() => setCategory(c.key)}
           >
-            <span style={styles.categoryIcon}>{c.icon}</span>
-            <span style={styles.categoryLabel}>{c.label}</span>
+            {c.label}
           </button>
         ))}
       </div>
 
-      {/* Time-range tabs */}
-      <div style={styles.timeRangeContainer}>
+      {/* Time Range Tabs */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "1rem",
+          marginBottom: "2rem",
+        }}
+      >
         {TIME_RANGES.map((t) => (
           <button
             key={t.value}
             style={{
-              ...styles.timeRangeButton,
-              ...(timeRange === t.value ? styles.timeRangeButtonActive : {}),
+              background:
+                timeRange === t.value ? fallAccent : "rgba(255,255,255,0.7)",
+              color: timeRange === t.value ? deepBrown : warmText,
+              border: "none",
+              borderRadius: 16,
+              padding: "0.4rem 0.9rem",
+              cursor: "pointer",
+              fontWeight: 600,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              transition: "all 0.2s ease",
             }}
             onClick={() => setTimeRange(t.value)}
-            onMouseEnter={(e) => {
-              if (timeRange !== t.value) {
-                e.currentTarget.style.borderColor = '#ff7f3e';
-                e.currentTarget.style.color = '#ff7f3e';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (timeRange !== t.value) {
-                e.currentTarget.style.borderColor = 'rgba(255, 127, 62, 0.2)';
-                e.currentTarget.style.color = '#d4a574';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }
-            }}
           >
-            <span style={styles.timeEmoji}>{t.emoji}</span>
             {t.label}
           </button>
         ))}
       </div>
 
-      {/* Main content */}
-      <div style={styles.contentCard}>
-        {category === "analyze" ? (
-          <>
-            <h2 style={styles.analyzeTitle}>Correlation Heatmap</h2>
-            <h3 style={styles.analyzeSubtitle}>
-              Pearson correlation coefficients between audio features (–1 to +1)
-            </h3>
-            <div style={styles.heatmapContainer}>
-              <table style={styles.heatmapTable}>
-                <thead>
-                  <tr>
-                    <th style={styles.heatmapCorner}></th>
-                    {(data.keys as string[]).map((col) => (
-                      <th key={col} style={styles.heatmapHeader}>
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data.keys as string[]).map((rowKey, i) => (
-                    <tr key={rowKey}>
-                      <th style={styles.heatmapRowHeader}>{rowKey}</th>
-                      {(data.matrix as number[][])[i].map((val, j) => {
-                        const red = val > 0 ? Math.round(val * 200) + 55 : 55;
-                        const green = val > 0 ? Math.round(val * 120) + 35 : 35;
-                        const blue = val < 0 ? Math.round(-val * 180) + 75 : 30;
-                        const bg = `rgb(${red},${green},${blue})`;
-                        const shade = Math.abs(val) > 0.5 ? "#fff" : "#1a1a1a";
-                        return (
-                          <td
-                            key={j}
-                            style={{
-                              ...styles.heatmapCell,
-                              backgroundColor: bg,
-                              color: shade,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'scale(1.15)';
-                              e.currentTarget.style.zIndex = '10';
-                              e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'scale(1)';
-                              e.currentTarget.style.zIndex = '1';
-                              e.currentTarget.style.boxShadow = 'none';
-                            }}
-                          >
-                            {val.toFixed(2)}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        ) : (
-          <ul style={styles.itemList}>
-            {(data as any[]).map((item: any, index: number) => {
-              if (category === "tracks") {
-                return (
-                  <li 
-                    key={item.id} 
-                    style={styles.itemCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 127, 62, 0.1)';
-                      e.currentTarget.style.borderColor = '#ff7f3e';
-                      e.currentTarget.style.transform = 'translateX(10px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 127, 62, 0.1)';
-                      e.currentTarget.style.transform = 'translateX(0)';
-                    }}
-                  >
-                    <span style={styles.itemRank}>{index + 1}</span>
-                    <div style={styles.itemImageWrapper}>
-                      <Image
-                        src={item.album.images[2]?.url}
-                        alt={item.name}
-                        width={64}
-                        height={64}
-                        style={styles.itemImage}
-                      />
-                    </div>
-                    <div style={styles.itemInfo}>
-                      <strong style={styles.itemTitle}>{item.name}</strong>
-                      <span style={styles.itemSubtitle}>
-                        {item.artists.map((a: any) => a.name).join(", ")}
-                      </span>
-                    </div>
-                  </li>
-                );
-              } else if (category === "artists") {
-                return (
-                  <li 
-                    key={item.id} 
-                    style={styles.itemCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 127, 62, 0.1)';
-                      e.currentTarget.style.borderColor = '#ff7f3e';
-                      e.currentTarget.style.transform = 'translateX(10px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 127, 62, 0.1)';
-                      e.currentTarget.style.transform = 'translateX(0)';
-                    }}
-                  >
-                    <span style={styles.itemRank}>{index + 1}</span>
-                    <div style={styles.itemImageWrapper}>
-                      <Image
-                        src={item.images[2]?.url}
-                        alt={item.name}
-                        width={64}
-                        height={64}
-                        style={styles.itemImage}
-                      />
-                    </div>
-                    <div style={styles.itemInfo}>
-                      <strong style={styles.itemTitle}>{item.name}</strong>
-                    </div>
-                  </li>
-                );
-              } else {
-                return (
-                  <li 
-                    key={item.genre} 
-                    style={styles.itemCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 127, 62, 0.1)';
-                      e.currentTarget.style.borderColor = '#ff7f3e';
-                      e.currentTarget.style.transform = 'translateX(10px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 127, 62, 0.1)';
-                      e.currentTarget.style.transform = 'translateX(0)';
-                    }}
-                  >
-                    <span style={styles.itemRank}>{index + 1}</span>
-                    <div style={styles.itemImageWrapper}>
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.genre}
-                        width={64}
-                        height={64}
-                        style={styles.itemImage}
-                      />
-                    </div>
-                    <div style={styles.itemInfo}>
-                      <strong style={styles.itemTitle}>{item.genre}</strong>
-                    </div>
-                  </li>
-                );
-              }
-            })}
-          </ul>
-        )}
+      {/* Sign-out */}
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <button
+          style={{
+            backgroundColor: "#7A4B2E",
+            color: "white",
+            border: "none",
+            borderRadius: 12,
+            padding: "0.5rem 1rem",
+            fontSize: "0.9rem",
+            cursor: "pointer",
+          }}
+          onClick={() => signOut()}
+        >
+          Sign Out
+        </button>
       </div>
+
+      {/* Main Content */}
+      {category === "analyze" ? (
+        <>
+          <h2 style={{ textAlign: "center", fontSize: "1.3rem", marginBottom: "1rem" }}>
+            🍁 Correlation Heatmap
+          </h2>
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "0.95rem",
+              marginBottom: "1.5rem",
+              color: "#7A4B2E",
+            }}
+          >
+            See how your top tracks’ audio features correlate over time.
+          </p>
+          <div
+            style={{
+              overflowX: "auto",
+              background: "rgba(255,255,255,0.9)",
+              borderRadius: 12,
+              padding: "1rem",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+            }}
+          >
+            <table style={{ borderCollapse: "collapse", margin: "auto" }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: 6 }}></th>
+                  {(data.keys as string[]).map((col) => (
+                    <th
+                      key={col}
+                      style={{
+                        padding: 6,
+                        fontSize: "0.8rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(data.keys as string[]).map((rowKey, i) => (
+                  <tr key={rowKey}>
+                    <th
+                      style={{
+                        padding: 6,
+                        fontSize: "0.8rem",
+                        textAlign: "right",
+                      }}
+                    >
+                      {rowKey}
+                    </th>
+                    {(data.matrix as number[][])[i].map((val, j) => {
+                      const red = val > 0 ? Math.round(val * 200) : 50;
+                      const green = 80;
+                      const blue = val < 0 ? Math.round(-val * 200) : 50;
+                      const bg = `rgb(${red},${green},${blue})`;
+                      const color = Math.abs(val) > 0.5 ? "#fff" : "#000";
+                      return (
+                        <td
+                          key={j}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            backgroundColor: bg,
+                            color,
+                            textAlign: "center",
+                            fontSize: "0.75rem",
+                            borderRadius: 4,
+                          }}
+                        >
+                          {val.toFixed(2)}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : (
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            display: "grid",
+            gap: "1rem",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          }}
+        >
+          {(data as any[]).map((item: any, idx) => {
+            const image =
+              category === "tracks"
+                ? item.album.images[2]?.url
+                : category === "artists"
+                ? item.images[2]?.url
+                : item.imageUrl;
+            const label =
+              category === "tracks"
+                ? `${item.name} — ${item.artists
+                    .map((a: any) => a.name)
+                    .join(", ")}`
+                : category === "artists"
+                ? item.name
+                : item.genre;
+
+            return (
+              <li
+                key={item.id || item.genre}
+                style={{
+                  background:
+                    idx % 2 === 0
+                      ? "rgba(255,255,255,0.9)"
+                      : "rgba(255, 238, 220, 0.9)",
+                  borderRadius: 16,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  padding: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  transition: "transform 0.2s ease",
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.03)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
+              >
+                {image && (
+                  <Image
+                    src={image}
+                    alt={label}
+                    width={60}
+                    height={60}
+                    style={{
+                      borderRadius: 12,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    }}
+                  />
+                )}
+                <div>
+                  <strong style={{ fontSize: "1rem" }}>{label}</strong>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </main>
   );
 }
-
-// Inline styles object
-const styles: { [key: string]: React.CSSProperties } = {
-  fallContainer: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #1a0e0a 0%, #2d1810 50%, #1a0e0a 100%)',
-    padding: '2rem',
-    position: 'relative',
-    overflow: 'hidden',
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  fallLeaves: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    pointerEvents: 'none',
-    zIndex: 0,
-    backgroundImage: `
-      radial-gradient(2px 2px at 20% 30%, rgba(255, 127, 62, 0.3), transparent),
-      radial-gradient(2px 2px at 60% 70%, rgba(255, 179, 71, 0.3), transparent),
-      radial-gradient(1px 1px at 50% 50%, rgba(196, 69, 54, 0.3), transparent),
-      radial-gradient(1px 1px at 80% 10%, rgba(255, 153, 102, 0.3), transparent)
-    `,
-    backgroundSize: '200% 200%, 300% 300%, 250% 250%, 400% 400%',
-    opacity: 0.6,
-  },
-  authCard: {
-    position: 'relative',
-    zIndex: 1,
-    maxWidth: '500px',
-    margin: '10rem auto',
-    padding: '3rem',
-    background: 'rgba(45, 24, 16, 0.85)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '24px',
-    border: '2px solid rgba(255, 127, 62, 0.2)',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(255, 127, 62, 0.1)',
-    textAlign: 'center',
-  },
-  pumpkinIcon: {
-    fontSize: '5rem',
-    marginBottom: '1.5rem',
-  },
-  fallHeader: {
-    fontSize: '2.5rem',
-    fontWeight: 800,
-    color: '#fff8f0',
-    marginBottom: '0.5rem',
-    background: 'linear-gradient(135deg, #ff7f3e, #ffb347)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
-  fallSubtitle: {
-    color: '#d4a574',
-    fontSize: '1.1rem',
-    marginBottom: '2rem',
-    lineHeight: 1.6,
-  },
-  fallButton: {
-    position: 'relative',
-    background: 'linear-gradient(135deg, #ff7f3e, #c44536)',
-    color: 'white',
-    border: 'none',
-    padding: '1rem 2.5rem',
-    fontSize: '1.1rem',
-    fontWeight: 600,
-    borderRadius: '50px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    overflow: 'hidden',
-    boxShadow: '0 8px 20px rgba(255, 127, 62, 0.3)',
-  },
-  buttonIcon: {
-    fontSize: '1.3rem',
-  },
-  dashboardHeader: {
-    position: 'relative',
-    zIndex: 1,
-    textAlign: 'center',
-    marginBottom: '3rem',
-  },
-  fallHeaderMain: {
-    fontSize: '2.5rem',
-    fontWeight: 800,
-    color: '#fff8f0',
-    marginBottom: '0.5rem',
-    textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-  },
-  timeRangeLabel: {
-    color: '#d4a574',
-    fontSize: '1.2rem',
-    marginBottom: '1rem',
-  },
-  signOutButton: {
-    background: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    color: '#d4a574',
-    padding: '0.5rem 1.5rem',
-    borderRadius: '30px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontSize: '0.9rem',
-    backdropFilter: 'blur(10px)',
-  },
-  categoryGrid: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1.5rem',
-    maxWidth: '1200px',
-    margin: '0 auto 2rem',
-  },
-  categoryCard: {
-    background: 'rgba(45, 24, 16, 0.85)',
-    backdropFilter: 'blur(20px)',
-    border: '2px solid rgba(255, 127, 62, 0.2)',
-    borderRadius: '16px',
-    padding: '1.5rem',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '0.75rem',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-  },
-  categoryCardActive: {
-    background: 'linear-gradient(135deg, rgba(255, 127, 62, 0.2), rgba(255, 179, 71, 0.2))',
-    borderColor: '#ff7f3e',
-    boxShadow: '0 8px 25px rgba(255, 127, 62, 0.4)',
-  },
-  categoryIcon: {
-    fontSize: '2.5rem',
-  },
-  categoryLabel: {
-    color: '#fff8f0',
-    fontWeight: 600,
-    fontSize: '1.1rem',
-  },
-  timeRangeContainer: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '1rem',
-    marginBottom: '2rem',
-    flexWrap: 'wrap',
-  },
-  timeRangeButton: {
-    background: 'rgba(45, 24, 16, 0.85)',
-    backdropFilter: 'blur(20px)',
-    border: '2px solid rgba(255, 127, 62, 0.2)',
-    color: '#d4a574',
-    padding: '0.75rem 1.5rem',
-    borderRadius: '50px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontWeight: 500,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  },
-  timeRangeButtonActive: {
-    background: 'linear-gradient(135deg, #ff7f3e, #c44536)',
-    color: 'white',
-    borderColor: '#ff7f3e',
-    boxShadow: '0 6px 20px rgba(255, 127, 62, 0.4)',
-  },
-  timeEmoji: {
-    fontSize: '1.2rem',
-  },
-  contentCard: {
-    position: 'relative',
-    zIndex: 1,
-    maxWidth: '1200px',
-    margin: '0 auto',
-    background: 'rgba(45, 24, 16, 0.85)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '24px',
-    border: '2px solid rgba(255, 127, 62, 0.2)',
-    padding: '2rem',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-  },
-  itemList: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-  },
-  itemCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1.5rem',
-    padding: '1rem',
-    background: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: '16px',
-    border: '1px solid rgba(255, 127, 62, 0.1)',
-    transition: 'all 0.3s ease',
-    cursor: 'pointer',
-  },
-  itemRank: {
-    fontSize: '1.5rem',
-    fontWeight: 800,
-    color: '#ff7f3e',
-    minWidth: '40px',
-    textAlign: 'center',
-  },
-  itemImageWrapper: {
-    borderRadius: '12px',
-    overflow: 'hidden',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-    transition: 'transform 0.3s ease',
-  },
-  itemImage: {
-    display: 'block',
-    borderRadius: '12px',
-  },
-  itemInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-    flex: 1,
-  },
-  itemTitle: {
-    color: '#fff8f0',
-    fontSize: '1.1rem',
-    fontWeight: 600,
-  },
-  itemSubtitle: {
-    color: '#d4a574',
-    fontSize: '0.9rem',
-  },
-  analyzeTitle: {
-    color: '#fff8f0',
-    fontSize: '1.8rem',
-    fontWeight: 700,
-    marginBottom: '0.5rem',
-    textAlign: 'center',
-  },
-  analyzeSubtitle: {
-    color: '#d4a574',
-    fontSize: '1rem',
-    marginBottom: '2rem',
-    textAlign: 'center',
-    lineHeight: 1.6,
-  },
-  heatmapContainer: {
-    overflowX: 'auto',
-    padding: '1rem',
-    background: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: '12px',
-  },
-  heatmapTable: {
-    borderCollapse: 'collapse',
-    margin: 'auto',
-    borderSpacing: '4px',
-  },
-  heatmapCorner: {
-    padding: '8px',
-  },
-  heatmapHeader: {
-    padding: '8px',
-    fontSize: '0.85rem',
-    textAlign: 'center',
-    color: '#ff7f3e',
-    fontWeight: 600,
-  },
-  heatmapRowHeader: {
-    padding: '8px',
-    fontSize: '0.85rem',
-    textAlign: 'right',
-    color: '#ff7f3e',
-    fontWeight: 600,
-  },
-  heatmapCell: {
-    width: '50px',
-    height: '50px',
-    textAlign: 'center',
-    fontSize: '0.8rem',
-    fontWeight: 600,
-    borderRadius: '8px',
-    transition: 'all 0.2s ease',
-    cursor: 'pointer',
-  },
-  loadingCard: {
-    position: 'relative',
-    zIndex: 1,
-    maxWidth: '400px',
-    margin: '10rem auto',
-    padding: '3rem',
-    background: 'rgba(45, 24, 16, 0.85)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '24px',
-    border: '2px solid rgba(255, 127, 62, 0.2)',
-    textAlign: 'center',
-  },
-  spinner: {
-    width: '60px',
-    height: '60px',
-    border: '4px solid rgba(255, 127, 62, 0.2)',
-    borderTopColor: '#ff7f3e',
-    borderRadius: '50%',
-    margin: '0 auto 1.5rem',
-    animation: 'spin 1s linear infinite',
-  },
-  loadingText: {
-    color: '#d4a574',
-    fontSize: '1.1rem',
-  },
-  errorCard: {
-    position: 'relative',
-    zIndex: 1,
-    maxWidth: '500px',
-    margin: '10rem auto',
-    padding: '2rem',
-    background: 'rgba(45, 24, 16, 0.85)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '24px',
-    border: '2px solid rgba(196, 69, 54, 0.5)',
-    textAlign: 'center',
-  },
-  fallError: {
-    color: '#c44536',
-    fontSize: '1.1rem',
-  },
-};
