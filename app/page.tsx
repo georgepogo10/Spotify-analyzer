@@ -20,7 +20,7 @@ const fetcher = async (url: string) => {
 };
 
 const CATEGORIES = [
-  { label: "Top Songs", key: "tracks", header: "Your Top 10 Tracks" },
+  { label: "Top Songs", key: "tracks", header: "Your Top 20 Tracks" },
   { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
   { label: "Top Genres", key: "genres", header: "Your Top 10 Genres" },
 ];
@@ -36,10 +36,9 @@ export default function Home() {
   const [category, setCategory] = useState("tracks");
   const [timeRange, setTimeRange] = useState("medium_term");
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
-  const [displayCount, setDisplayCount] = useState(10);
 
   const endpoint = session
-    ? `/api/spotify/top-${category}?time_range=${timeRange}`
+    ? `/api/spotify/top-${category}?time_range=${timeRange}&limit=20`
     : null;
 
   const { data, error } = useSWR(endpoint, fetcher);
@@ -137,15 +136,14 @@ export default function Home() {
   const currentCat = CATEGORIES.find((c) => c.key === category)!;
   const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
 
-  // Remove a song and expand display count
+  // Remove a song (only client-side)
   const handleRemove = (id: string) => {
     setRemovedIds((prev) => new Set([...prev, id]));
-    setDisplayCount((prev) => prev + 1);
   };
 
   const filteredData = (data as any[])
     .filter((item) => !removedIds.has(item.id))
-    .slice(0, displayCount);
+    .slice(0, category === "tracks" ? 20 : 10); // Limit to 20 for tracks, 10 for others
 
   return (
     <main
@@ -209,11 +207,7 @@ export default function Home() {
                   : "0 2px 6px rgba(0,0,0,0.1)",
               transition: "all 0.2s ease",
             }}
-            onClick={() => {
-              setCategory(c.key);
-              setRemovedIds(new Set());
-              setDisplayCount(10);
-            }}
+            onClick={() => setCategory(c.key)}
           >
             {c.label}
           </button>
@@ -244,11 +238,7 @@ export default function Home() {
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               transition: "all 0.2s ease",
             }}
-            onClick={() => {
-              setTimeRange(t.value);
-              setRemovedIds(new Set());
-              setDisplayCount(10);
-            }}
+            onClick={() => setTimeRange(t.value)}
           >
             {t.label}
           </button>
