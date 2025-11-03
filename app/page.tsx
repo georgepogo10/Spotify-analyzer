@@ -28,7 +28,7 @@ const CATEGORIES = [
 const TIME_RANGES = [
   { label: "Last Month", value: "short_term" },
   { label: "Last 6 Months", value: "medium_term" },
-  { label: "One Year+", value: "long_term" },
+  { label: "One Year +", value: "long_term" },
 ];
 
 export default function Home() {
