@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import useSWR from "swr";
 import { useSession, signIn, signOut } from "next-auth/react";
@@ -35,7 +35,11 @@ export default function Home() {
   const { data: session } = useSession();
   const [category, setCategory] = useState("tracks");
   const [timeRange, setTimeRange] = useState("medium_term");
-  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  // visible + full lists
+  const [visibleItems, setVisibleItems] = useState<any[]>([]);
+  const [allItems, setAllItems] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(10); // next track to load after visible 10
 
   const endpoint = session
     ? `/api/spotify/top-${category}?time_range=${timeRange}`
@@ -50,6 +54,15 @@ export default function Home() {
   const deepBrown = "#3B1C0A";
   const softCream = "#FFF8F1";
   const warmText = "#5C3D2E";
+
+  // initialize visible items when data loads
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      setAllItems(data);
+      setVisibleItems(data.slice(0, 10));
+      setCurrentIndex(10);
+    }
+  }, [data]);
 
   // Not signed in
   if (!session) {
@@ -136,14 +149,18 @@ export default function Home() {
   const currentCat = CATEGORIES.find((c) => c.key === category)!;
   const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
 
-  // Remove a song (only client-side)
+  // Remove a song and automatically add next in list
   const handleRemove = (id: string) => {
-    setRemovedIds((prev) => new Set([...prev, id]));
+    setVisibleItems((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      // If more tracks are available, add next one
+      if (currentIndex < allItems.length) {
+        updated.push(allItems[currentIndex]);
+        setCurrentIndex((i) => i + 1);
+      }
+      return updated;
+    });
   };
-
-  const filteredData = (data as any[]).filter(
-    (item) => !removedIds.has(item.id)
-  );
 
   return (
     <main
@@ -273,7 +290,7 @@ export default function Home() {
           gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
         }}
       >
-        {filteredData.map((item: any, idx) => {
+        {visibleItems.map((item: any, idx) => {
           const image =
             category === "tracks"
               ? item.album.images[2]?.url
