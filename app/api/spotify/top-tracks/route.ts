@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const time_range = url.searchParams.get("time_range") ?? "medium_term";
 
   const response = await fetch(
-    `https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=${time_range}`,
+    `https://api.spotify.com/v1/me/top/tracks?limit=30&time_range=${time_range}`,
     { headers: { Authorization: `Bearer ${token.accessToken}` } }
   );
 
