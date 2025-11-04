@@ -20,7 +20,7 @@ const fetcher = async (url: string) => {
 };
 
 const CATEGORIES = [
-  { label: "Top Songs", key: "tracks", header: "Your Top 20 Tracks" },
+  { label: "Top Songs", key: "tracks", header: "Your Top 10 Tracks" },
   { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
   { label: "Top Genres", key: "genres", header: "Your Top 10 Genres" },
 ];
@@ -38,7 +38,7 @@ export default function Home() {
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
   const endpoint = session
-    ? `/api/spotify/top-${category}?time_range=${timeRange}&limit=20`
+    ? `/api/spotify/top-${category}?time_range=${timeRange}`
     : null;
 
   const { data, error } = useSWR(endpoint, fetcher);
@@ -141,9 +141,9 @@ export default function Home() {
     setRemovedIds((prev) => new Set([...prev, id]));
   };
 
-  const filteredData = (data as any[])
-    .filter((item) => !removedIds.has(item.id))
-    .slice(0, category === "tracks" ? 20 : 10); // Limit to 20 for tracks, 10 for others
+  const filteredData = (data as any[]).filter(
+    (item) => !removedIds.has(item.id)
+  );
 
   return (
     <main
