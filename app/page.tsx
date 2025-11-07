@@ -69,10 +69,10 @@ export default function Home() {
         }}
       >
         <h1 style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: "1rem" }}>
-          🍂 Spotify Autumn Analyzer 🍁
+          🍂 Spotify Analyzer 🍁
         </h1>
         <p style={{ fontSize: "1.1rem", marginBottom: "1.5rem", maxWidth: 500 }}>
-          Discover your top tracks and artists this season in warm autumn style.
+          Discover your top tracks, artists, and genres.
         </p>
         <button
           style={{
@@ -129,7 +129,7 @@ export default function Home() {
           fontSize: "1.1rem",
         }}
       >
-        Loading your fall vibes…
+        Loading your Music…
       </main>
     );
 
