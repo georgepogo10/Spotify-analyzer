@@ -11,6 +11,8 @@ declare module "next-auth" {
       /** Spotify access token added in `callbacks.session` */
       accessToken?: string;
     };
+    /** Error flag when token refresh fails */
+    error?: string;
   }
 }
 
@@ -18,5 +20,11 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     /** Spotify access token persisted in `callbacks.jwt` */
     accessToken?: string;
+    /** Spotify refresh token used to get new access tokens */
+    refreshToken?: string;
+    /** Timestamp when the access token expires (in milliseconds) */
+    accessTokenExpires?: number;
+    /** Error flag when token refresh fails */
+    error?: string;
   }
 }

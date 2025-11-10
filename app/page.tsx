@@ -1,24 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import useSWR from "swr";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Leaf } from "lucide-react";
 
-// Fetch helper
+// ------------------------------- 
+// FETCH HELPER 
+// ------------------------------- 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   const text = await res.text();
+
   if (text.trim().startsWith("<!DOCTYPE")) {
     throw new Error("Expected JSON from API but got HTML. Check API route.");
   }
+
   const data = JSON.parse(text);
   if (!res.ok) throw new Error(data.error || "Fetch failed");
   return data;
 };
 
+// ------------------------------- 
+// STATIC CONFIGURATION 
+// ------------------------------- 
 const CATEGORIES = [
   { label: "Top Songs", key: "tracks", header: "Your Top 10 Tracks" },
   { label: "Top Artists", key: "artists", header: "Your Top 10 Artists" },
@@ -31,11 +38,24 @@ const TIME_RANGES = [
   { label: "One Year +", value: "long_term" },
 ];
 
+// ------------------------------- 
+// MAIN COMPONENT 
+// ------------------------------- 
 export default function Home() {
   const { data: session } = useSession();
+
   const [category, setCategory] = useState("tracks");
   const [timeRange, setTimeRange] = useState("medium_term");
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  // Check if token refresh failed
+  useEffect(() => {
+    if (session?.error === "RefreshAccessTokenError") {
+      console.error("Token refresh failed. User needs to sign in again.");
+      // Optionally auto-redirect to sign in
+      // signIn("spotify");
+    }
+  }, [session]);
 
   const endpoint = session
     ? `/api/spotify/top-${category}?time_range=${timeRange}`
@@ -43,15 +63,18 @@ export default function Home() {
 
   const { data, error } = useSWR(endpoint, fetcher);
 
-  // FALL THEME COLORS
-  const fallGradient =
-    "linear-gradient(135deg, #FFB347 0%, #FF7E5F 40%, #B34700 100%)";
+  // ------------------------------- 
+  // FALL THEME COLOR PALETTE 
+  // ------------------------------- 
+  const fallGradient = "linear-gradient(135deg, #FFB347 0%, #FF7E5F 40%, #B34700 100%)";
   const fallAccent = "#FF9F55";
   const deepBrown = "#3B1C0A";
   const softCream = "#FFF8F1";
   const warmText = "#5C3D2E";
 
-  // Not signed in
+  // ------------------------------- 
+  // STATE 1: USER NOT SIGNED IN 
+  // ------------------------------- 
   if (!session) {
     return (
       <main
@@ -98,7 +121,51 @@ export default function Home() {
     );
   }
 
-  // Error / Loading states
+  // ------------------------------- 
+  // TOKEN REFRESH ERROR 
+  // ------------------------------- 
+  if (session?.error === "RefreshAccessTokenError") {
+    return (
+      <main
+        style={{
+          background: softCream,
+          color: deepBrown,
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: "1.1rem",
+          padding: "2rem",
+          textAlign: "center",
+        }}
+      >
+        <h2 style={{ marginBottom: "1rem" }}>Session Expired</h2>
+        <p style={{ marginBottom: "1.5rem", maxWidth: 400 }}>
+          Your Spotify session has expired. Please sign in again to continue.
+        </p>
+        <button
+          style={{
+            backgroundColor: deepBrown,
+            color: softCream,
+            border: "none",
+            borderRadius: 12,
+            padding: "0.75rem 1.5rem",
+            fontSize: "1rem",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+          onClick={() => signIn("spotify")}
+        >
+          Sign In Again
+        </button>
+      </main>
+    );
+  }
+
+  // ------------------------------- 
+  // STATE 2: ERROR OR LOADING 
+  // ------------------------------- 
   if (error)
     return (
       <main
@@ -133,18 +200,24 @@ export default function Home() {
       </main>
     );
 
+  // ------------------------------- 
+  // HELPER VARIABLES 
+  // ------------------------------- 
   const currentCat = CATEGORIES.find((c) => c.key === category)!;
   const currentTimeLabel = TIME_RANGES.find((t) => t.value === timeRange)!.label;
 
-  // Remove a song (only client-side)
+  // ------------------------------- 
+  // HANDLERS 
+  // ------------------------------- 
   const handleRemove = (id: string) => {
     setRemovedIds((prev) => new Set([...prev, id]));
   };
 
-  const filteredData = (data as any[]).filter(
-    (item) => !removedIds.has(item.id)
-  );
+  const filteredData = (data as any[]).filter((item) => !removedIds.has(item.id));
 
+  // ------------------------------- 
+  // MAIN LOGGED-IN VIEW 
+  // ------------------------------- 
   return (
     <main
       style={{
@@ -155,13 +228,8 @@ export default function Home() {
         padding: "2rem",
       }}
     >
-      {/* Header */}
-      <header
-        style={{
-          textAlign: "center",
-          marginBottom: "2rem",
-        }}
-      >
+      {/* ------------------ HEADER ------------------ */}
+      <header style={{ textAlign: "center", marginBottom: "2rem" }}>
         <h1
           style={{
             fontSize: "2rem",
@@ -174,12 +242,10 @@ export default function Home() {
         >
           {currentCat.header}
         </h1>
-        <h2 style={{ fontSize: "1rem", color: "#7A4B2E" }}>
-          ({currentTimeLabel})
-        </h2>
+        <h2 style={{ fontSize: "1rem", color: "#7A4B2E" }}>({currentTimeLabel})</h2>
       </header>
 
-      {/* Category Tabs */}
+      {/* ------------------ CATEGORY TABS ------------------ */}
       <div
         style={{
           display: "flex",
@@ -214,7 +280,7 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Time Range Tabs */}
+      {/* ------------------ TIME RANGE TABS ------------------ */}
       <div
         style={{
           display: "flex",
@@ -245,7 +311,7 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Sign-out */}
+      {/* ------------------ SIGN OUT BUTTON ------------------ */}
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
         <button
           style={{
@@ -263,7 +329,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Top Items List */}
+      {/* ------------------ MAIN CONTENT LIST ------------------ */}
       <ul
         style={{
           listStyle: "none",
@@ -280,11 +346,10 @@ export default function Home() {
               : category === "artists"
               ? item.images[2]?.url
               : item.imageUrl;
+
           const label =
             category === "tracks"
-              ? `${item.name} — ${item.artists
-                  .map((a: any) => a.name)
-                  .join(", ")}`
+              ? `${item.name} — ${item.artists.map((a: any) => a.name).join(", ")}`
               : category === "artists"
               ? item.name
               : item.genre;
@@ -309,9 +374,7 @@ export default function Home() {
               onMouseOver={(e) =>
                 (e.currentTarget.style.transform = "scale(1.03)")
               }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.transform = "scale(1)")
-              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 <span
@@ -325,6 +388,7 @@ export default function Home() {
                 >
                   {idx + 1}.
                 </span>
+
                 {image && (
                   <Image
                     src={image}
@@ -337,10 +401,12 @@ export default function Home() {
                     }}
                   />
                 )}
+
                 <div>
                   <strong style={{ fontSize: "1rem" }}>{label}</strong>
                 </div>
               </div>
+
               <Leaf
                 size={22}
                 color="#7A4B2E"
